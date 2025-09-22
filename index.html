@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Learning App</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #4a6fa5;
+            margin-bottom: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #eee;
+            margin: 0 5px;
+            border-radius: 5px 5px 0 0;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: #4a6fa5;
+            color: white;
+        }
+        
+        .section {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background: #4a6fa5;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #3a5a80;
+        }
+        
+        .feedback {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 20px;
+        }
+        
+        .word-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .word-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .word-item:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        .progress {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        
+        .correct {
+            color: green;
+        }
+        
+        .incorrect {
+            color: red;
+        }
+        
+        #all_count {
+            color: #4a6fa5;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>English Learning App</h1>
+            <p>Improve your vocabulary with this interactive tool</p>
+        </header>
+        
+        <div class="tabs">
+            <div class="tab active" data-target="add-words">Add New Words</div>
+            <div class="tab" data-target="exam">Exam</div>
+            <div class="tab" data-target="lexical-resources">Lexical Resources</div>
+        </div>
+        
+        <section id="add-words" class="section active">
+            <h2>Add New Words</h2>
+            <div class="form-group">
+                <label for="english-word">English Word:</label>
+                <input type="text" id="english-word" placeholder="Enter English word">
+            </div>
+            <div class="form-group">
+                <label for="turkish-translation">Translation:</label>
+                <input type="text" id="turkish-translation" placeholder="Enter translation">
+            </div>
+            <button id="add-word-btn">Add Word</button>
+            <div id="add-feedback" class="feedback"></div>
+        </section>
+        
+        <section id="exam" class="section">
+            <h2>Exam</h2>
+            <div id="exam-instructions">
+                <p>You will be tested on 30 random words from your vocabulary. Type the English word for the given translation.</p>
+                <button id="start-exam">Start Exam</button>
+            </div>
+            <div id="exam-content" style="display: none;">
+                <div class="progress">Progress: <span id="progress">0/30</span></div>
+                <div class="form-group">
+                    <label for="turkish-question">Word:</label>
+                    <input type="text" id="turkish-question" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="english-answer">English Word:</label>
+                    <input type="text" id="english-answer" placeholder="Type the English word">
+                </div>
+                <button id="check-answer">Check Answer</button>
+                <div id="exam-feedback" class="feedback"></div>
+            </div>
+        </section>
+        
+        <section id="lexical-resources" class="section">
+            <h2>Lexical Resources <span id="all_count"></span></h2>
+            <p>All words in your vocabulary:</p>
+            <div id="word-list" class="word-list">
+                <!-- Word list will be populated by JavaScript -->
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // DOM Elements
+        const tabs = document.querySelectorAll('.tab');
+        const sections = document.querySelectorAll('.section');
+        
+        // Add Words Section
+        const englishWordInput = document.getElementById('english-word');
+        const turkishTranslationInput = document.getElementById('turkish-translation');
+        const addWordBtn = document.getElementById('add-word-btn');
+        const addFeedback = document.getElementById('add-feedback');
+        
+        // Exam Section
+        const startExamBtn = document.getElementById('start-exam');
+        const examInstructions = document.getElementById('exam-instructions');
+        const examContent = document.getElementById('exam-content');
+        const turkishQuestionInput = document.getElementById('turkish-question');
+        const englishAnswerInput = document.getElementById('english-answer');
+        const checkAnswerBtn = document.getElementById('check-answer');
+        const examFeedback = document.getElementById('exam-feedback');
+        const progressElement = document.getElementById('progress');
+        
+        // Lexical Resources Section
+        const wordListElement = document.getElementById('word-list');
+        const allCountElement = document.getElementById('all_count');
+        
+        // Application State
+        let examWords = [];
+        let currentExamIndex = 0;
+        let correctAnswers = 0;
+        
+        // Initialize the application
+        function init() {
+            // Set up tab navigation
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const target = tab.getAttribute('data-target');
+                    
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // Show corresponding section
+                    sections.forEach(section => {
+                        section.classList.remove('active');
+                        if (section.id === target) {
+                            section.classList.add('active');
+                            
+                            // Refresh word list when lexical resources tab is selected
+                            if (target === 'lexical-resources') {
+                                displayWordList();
+                                updateWordCount();
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // Set up event listeners
+            addWordBtn.addEventListener('click', addNewWord);
+            startExamBtn.addEventListener('click', startExam);
+            checkAnswerBtn.addEventListener('click', checkAnswer);
+            
+            // Display existing words if any
+            displayWordList();
+            updateWordCount();
+        }
+        
+        // Add a new word to the vocabulary
+        function addNewWord() {
+            const englishWord = englishWordInput.value.trim();
+            const turkishTranslation = turkishTranslationInput.value.trim();
+            
+            if (!englishWord || !turkishTranslation) {
+                addFeedback.textContent = 'Please fill in both fields';
+                addFeedback.className = 'feedback incorrect';
+                return;
+            }
+            
+            // Get existing words from localStorage
+            const words = getWords();
+            
+            // Check if word already exists
+            if (words.some(word => word.english.toLowerCase() === englishWord.toLowerCase())) {
+                addFeedback.textContent = 'This word already exists in your vocabulary';
+                addFeedback.className = 'feedback incorrect';
+                return;
+            }
+            
+            // Add new word
+            words.push({
+                english: englishWord,
+                turkish: turkishTranslation
+            });
+            
+            // Save to localStorage
+            localStorage.setItem('englishWords', JSON.stringify(words));
+            
+            // Clear inputs and show success message
+            englishWordInput.value = '';
+            turkishTranslationInput.value = '';
+            addFeedback.textContent = '✓ Word added successfully';
+            addFeedback.className = 'feedback correct';
+            
+            // Update word count
+            updateWordCount();
+            
+            // Hide feedback after 2 seconds
+            setTimeout(() => {
+                addFeedback.textContent = '';
+            }, 2000);
+        }
+        
+        // Get all words from localStorage
+        function getWords() {
+            const wordsJSON = localStorage.getItem('englishWords');
+            return wordsJSON ? JSON.parse(wordsJSON) : [];
+        }
+        
+        // Update the word count display
+        function updateWordCount() {
+            const words = getWords();
+            allCountElement.textContent = `(${words.length})`;
+        }
+        
+        // Start the exam
+        function startExam() {
+            const words = getWords();
+            
+            if (words.length < 30) {
+                alert('You need at least 30 words in your vocabulary to start the exam');
+                return;
+            }
+            
+            // Select 30 random words
+            examWords = [];
+            const shuffled = [...words].sort(() => 0.5 - Math.random());
+            examWords = shuffled.slice(0, 30);
+            
+            // Reset exam state
+            currentExamIndex = 0;
+            correctAnswers = 0;
+            
+            // Update UI
+            examInstructions.style.display = 'none';
+            examContent.style.display = 'block';
+            examFeedback.textContent = '';
+            progressElement.textContent = `0/30`;
+            
+            // Show first question
+            showQuestion();
+        }
+        
+        // Show the current question in the exam
+        function showQuestion() {
+            if (currentExamIndex >= examWords.length) {
+                finishExam();
+                return;
+            }
+            
+            const currentWord = examWords[currentExamIndex];
+            turkishQuestionInput.value = currentWord.turkish;
+            englishAnswerInput.value = '';
+            englishAnswerInput.focus();
+            progressElement.textContent = `${currentExamIndex}/30`;
+        }
+        
+        // Check the user's answer
+        function checkAnswer() {
+            const userAnswer = englishAnswerInput.value.trim().toLowerCase();
+            const correctAnswer = examWords[currentExamIndex].english.toLowerCase();
+            
+            if (userAnswer === correctAnswer) {
+                examFeedback.textContent = '✓ Correct!';
+                examFeedback.className = 'feedback correct';
+                correctAnswers++;
+                currentExamIndex++;
+                
+                // Show next question after a short delay
+                setTimeout(() => {
+                    examFeedback.textContent = '';
+                    showQuestion();
+                }, 1000);
+            } else {
+                examFeedback.textContent = '✗ Incorrect. Try again.';
+                examFeedback.className = 'feedback incorrect';
+                
+                // Clear the input after a short delay
+                setTimeout(() => {
+                    englishAnswerInput.value = '';
+                    englishAnswerInput.focus();
+                }, 1000);
+            }
+        }
+        
+        // Finish the exam and show results
+        function finishExam() {
+            examInstructions.style.display = 'block';
+            examContent.style.display = 'none';
+            
+            alert(`Exam completed!\nYou got ${correctAnswers} out of 30 correct.`);
+            
+            // If not all answers were correct, user must retry
+            if (correctAnswers < 30) {
+                alert('You need to get all answers correct to pass. Please try again.');
+            }
+        }
+        
+        // Display all words in the lexical resources section
+        function displayWordList() {
+            const words = getWords();
+            
+            if (words.length === 0) {
+                wordListElement.innerHTML = '<p>No words added yet. Go to "Add New Words" to start building your vocabulary.</p>';
+                return;
+            }
+            
+            wordListElement.innerHTML = '';
+            
+            words.forEach(word => {
+                const wordElement = document.createElement('div');
+                wordElement.className = 'word-item';
+                wordElement.innerHTML = `
+                    <span class="english-word">${word.english}</span>
+                    <span class="turkish-translation">${word.turkish}</span>
+                `;
+                wordListElement.appendChild(wordElement);
+            });
+        }
+        
+        // Initialize the application when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
